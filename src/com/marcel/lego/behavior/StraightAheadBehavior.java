@@ -27,6 +27,7 @@ public class StraightAheadBehavior implements Behavior {
 		while (!suppressed) {
 			Thread.yield();
 		}
+		Configuration.instance.pilot.stop();
 	}
 
 	@Override

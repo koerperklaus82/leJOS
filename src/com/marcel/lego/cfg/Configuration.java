@@ -42,7 +42,8 @@ public class Configuration {
 		this.pilot = new DifferentialPilot(
 				Configuration.WHEEL_DIAMETER, Configuration.WHEEL_DISTANCE, 
 				Configuration.MOTOR_LEFT, Configuration.MOTOR_RIGHT, true);
-		this.pilot.setTravelSpeed(1.2);
+		this.pilot.setTravelSpeed(2.0);
+		this.pilot.setAcceleration(6);
 		// this means using a OdometryPoseProvider (count wheel tracks)
 		// alternatively MCLPoseProvider can be used but uses Distance tracking for navigation
 		PoseProvider poseProvider = null;
@@ -50,9 +51,9 @@ public class Configuration {
 		this.sonar = new RangeFeatureDetector(new UltrasonicSensor(SENSOR_SONAR), 50.0f /*cm*/, 500);
 		
 		Behavior[] behaviorList = new Behavior[] {
-				new ExitButtonPressedBehaviour(),
+				new StraightAheadBehavior(),
 				new ObstacleInFrontBehavior(),
-				new StraightAheadBehavior()
+				new ExitButtonPressedBehaviour()
 		};
 		this.arbi = new Arbitrator(behaviorList);
 	}

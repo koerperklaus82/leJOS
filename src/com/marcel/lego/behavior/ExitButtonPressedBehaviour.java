@@ -17,6 +17,7 @@ public class ExitButtonPressedBehaviour implements Behavior {
 	@Override
 	public void action() {
 		Configuration.instance.pilot.stop();
+		System.exit(0);
 	}
 
 	@Override
