@@ -8,42 +8,49 @@ import lejos.robotics.subsumption.Behavior;
 public class ObstacleInFrontBehavior implements Behavior {
 
 	private boolean suppressed = false;
-	private Feature lastFeature;
+	private float lastRange = 200;
 	private int direction = 1;
 
 	
 	@Override
 	public boolean takeControl() {
 		Feature f = Configuration.instance.sonar.scan();
-		this.lastFeature = f;
-		return f != null && f.getRangeReading().getRange() < 10.0f;
+		this.lastRange = getRange();
+		System.out.println("R: " + lastRange);
+		return lastRange < 15;
 	}
 
 	@Override
 	public void action() {
 		this.suppressed = false;
 		Configuration.instance.pilot.stop();
-		
-		while(!suppressed && lastFeature != null && lastFeature.getRangeReading().getRange() < 15.0) {
+		Configuration.instance.pilot.setTravelSpeed(0.8);
+		Configuration.instance.pilot.setAcceleration(3);
+		while(!suppressed && lastRange < 20) {
 
-			Configuration.instance.pilot.rotate(direction * 90);
+			Configuration.instance.pilot.rotate(direction * 90, true);
 
-			Feature newFeature = Configuration.instance.sonar.scan();
-			while (!suppressed && Configuration.instance.pilot.isMoving() &&
-							(newFeature == null || newFeature.getRangeReading().getRange() >= lastFeature.getRangeReading().getRange())) {
+			boolean changeDirection = false;
+			
+			while (!suppressed 
+					&& Configuration.instance.pilot.isMoving() 
+					&& !changeDirection) {
 				Thread.yield();
-				newFeature = Configuration.instance.sonar.scan();
+				float newRange = getRange();
+				System.out.println("R: " + newRange);
+				changeDirection = newRange < lastRange;
+				lastRange = newRange;
 			}
 			
 			// if required change direction
-			if (newFeature.getRangeReading().getRange() < lastFeature.getRangeReading().getRange()) {
+			if (changeDirection) {
 				direction = direction * -1;
-			} else {
-				direction = direction * 1;
-			}
-			this.lastFeature = newFeature;
+				Configuration.instance.pilot.stop();
+			} 
 		}
 		Configuration.instance.pilot.stop();
+		Configuration.instance.pilot.setTravelSpeed(2.0);
+		Configuration.instance.pilot.setAcceleration(3);
 	}
 
 	@Override
@@ -51,4 +58,9 @@ public class ObstacleInFrontBehavior implements Behavior {
 		this.suppressed = true;
 	}
 
+	private float getRange() {
+		Feature f = Configuration.instance.sonar.scan();
+		float newRange =  f != null && f.getRangeReading() != null ? f.getRangeReading().getRange() : 200;
+		return newRange;
+	}
 }
